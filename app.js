@@ -15,6 +15,9 @@ const hbs = require('hbs');
 
 const app = express();
 
+const session = require('express-session')
+const MongoStore = require('connect-mongo')
+
 // ℹ️ This function is getting exported from the config folder. It runs most middlewares
 require('./config')(app);
 
@@ -25,6 +28,23 @@ const capitalized = string => string[0].toUpperCase() + string.slice(1).toLowerC
 app.locals.title = `${capitalized(projectName)}- Generated with Ironlauncher`;
 
 // 👇 Start handling routes here
+app.use(
+    session({
+      secret: 'keyboardcat',
+      resave: true,
+      saveUninitialized: false,
+      cookie: {
+        sameSite: 'lax',
+        secure: false,
+        httpOnly: true,
+        maxAge: 60000 // 60 * 1000 ms === 1 min
+      },
+      store: MongoStore.create({
+        mongoUrl: 'mongodb://localhost:27017/basic-auth-demo'
+      })
+    })
+  );
+  
 const index = require('./routes/index');
 app.use('/', index);
 

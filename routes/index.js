@@ -47,4 +47,48 @@ router.get('/login', (req, res, next) => {
 })
 
 
+
+router.post('/login', (req, res, next) => {
+
+  const { username, password } = req.body
+
+  if(!username || !password) {
+      res.render('login.hbs', { errorMessage: 'sorry you forgot email or password'})
+      return;
+  }
+
+  User.findOne({ username: username })
+      .then(foundUser => {
+
+          if(!foundUser) {
+              // res.send('sorry user does not exist')
+              res.render('login.hbs', { errorMessage: 'sorry user does not exist' })
+              return;
+          }
+
+          const isValidPassword = bcryptjs.compareSync(password, foundUser.password)
+
+          if(!isValidPassword) {
+              // res.send('sorry wrong password')
+              res.render('login.hbs', { errorMessage: 'sorry wrong password' })
+              return;
+          }
+
+          req.session.user = foundUser
+          // res.send('logged in')
+          res.render('profile.hbs', foundUser)
+      })
+      .catch(err => {
+          console.log(err)
+          res.send(err)
+      })
+})
+
+router.get('/profile', (req, res, next) => {
+  console.log(req.session)
+  res.render('profile.hbs', req.session.user)
+})
+
+
+
 module.exports = router;
