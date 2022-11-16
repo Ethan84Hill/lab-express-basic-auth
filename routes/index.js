@@ -2,16 +2,18 @@ const router = require("express").Router();
 const bcryptjs = require('bcryptjs')
 const User = require('../models/User.model')
 
+const { isLoggedIn , isAnon } = require('../middlewares/auth.middlewares')
+
 /* GET home page */
 router.get("/", (req, res, next) => {
   res.render("index");
 });
 
-router.get('/signup', (req, res, next) => {
+router.get('/signup', isAnon, (req, res, next) => {
   res.render('signup.hbs')
 })
 
-router.post('/signup', (req, res, next) => {
+router.post('/signup', isAnon, (req, res, next) => {
   console.log(req.body)
 
   if(!req.body.username || !req.body.password) {
@@ -42,13 +44,13 @@ router.post('/signup', (req, res, next) => {
   })
 })
 
-router.get('/login', (req, res, next) => {
+router.get('/login', isAnon, (req, res, next) => {
   res.render('login.hbs')
 })
 
 
 
-router.post('/login', (req, res, next) => {
+router.post('/login', isAnon, (req, res, next) => {
 
   const { username, password } = req.body
 
@@ -84,11 +86,24 @@ router.post('/login', (req, res, next) => {
       })
 })
 
-router.get('/profile', (req, res, next) => {
+router.get('/profile', isLoggedIn, (req, res, next) => {
   console.log(req.session)
   res.render('profile.hbs', req.session.user)
 })
 
+router.get('/main', isAnon, (req, res, next) => {
+  res.render('main.hbs')
+})
+
+router.get('/private', isLoggedIn, (req, res, next) => {
+  res.render('private.hbs', req.session.user)
+})
+
+router.get('/logout', (req, res, next) => {
+  req.session.destroy(() => {
+      res.redirect('/');
+  })
+})
 
 
 module.exports = router;
